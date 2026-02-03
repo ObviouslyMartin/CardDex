@@ -75,8 +75,14 @@ struct CardDetailView: View {
                         if card.isPokemon {
                             pokemonInfo
                         }
-                        if card.isTrainer || card.isEnergy{
+                        // Trainer-specific info
+                        if card.isTrainer {
                             trainerInfo
+                        }
+                        
+                        // Energy-specific info
+                        if card.isEnergy {
+                            energyInfo
                         }
                         // Set Info
                         setInfo
@@ -279,21 +285,64 @@ struct CardDetailView: View {
     }
     
     private var trainerInfo: some View {
+            VStack(spacing: 16) {
+                // Always show a header to confirm this section is rendering
+                Text("Trainer Card Details")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Trainer Type
+                if let trainerType = card.trainerType {
+                    InfoRow(label: "Card Type", value: trainerType)
+                        .padding()
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                }
+                
+                // Effect
+                if let effect = card.effect {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Effect")
+                            .font(.subheadline.bold())
+                        
+                        Text(effect)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+            .padding()
+            .background(Color.orange.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+        }
+        
+    private var energyInfo: some View {
         VStack(spacing: 16) {
             // Always show a header to confirm this section is rendering
-            Text("Trainer Details")
+            Text("Energy Card Details")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             // Effect
             if let effect = card.effect {
-                InfoRow(label: "Effect", value: effect)
-                    .padding()
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Effect")
+                        .font(.subheadline.bold())
+                    
+                    Text(effect)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.yellow.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
             }
         }
         .padding()
-        .background(Color.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
     }
 
     
