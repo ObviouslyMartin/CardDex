@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
+//  CardRowView.swift
 //  CardDex
 //
-//  Created by Martin
+//  Created by Martin Plut on 2/1/26.
 //
 
 import SwiftUI
@@ -16,8 +16,7 @@ struct ContentView: View {
                     Label("Collection", systemImage: "rectangle.stack")
                 }
             
-            // Placeholder for future tabs
-            Text("Decks Coming Soon")
+            DeckListView()
                 .tabItem {
                     Label("Decks", systemImage: "square.stack.3d.up")
                 }
