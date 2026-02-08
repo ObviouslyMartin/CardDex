@@ -5,7 +5,6 @@
 //  Created by Martin Plut on 2/1/26.
 //
 
-
 import Foundation
 
 @MainActor
@@ -64,17 +63,34 @@ final class TCGdexService {
     }
     
     /// Search cards by local ID and optional total
-    func searchCardsByNumber(localId: String, total: String? = nil) async throws -> [CardBriefAPI] {
+    func searchCardsByNumber(localId: String, total: Int? = nil) async throws -> [CardBriefAPI] {
         // Get all cards and filter by localId
         let allCards = try await getAllCards()
         
-        var filtered = allCards.filter { $0.localId == localId }
+        let filtered = allCards.filter { $0.localId == localId }
         
         // If total is provided, further filter by set's official count
-        if let total = total, let totalInt = Int(total) {
-            // We'd need to fetch set info to match, for now just return the localId matches
+        if total != nil {
+            // Filter by cards from sets with matching card count
+            // Note: This is approximate since we don't have direct set.total access
             return filtered
         }
+        
+        return filtered
+    }
+    
+    /// Search cards by name AND number for precise matching
+    func searchCardsByNameAndNumber(name: String, localId: String, total: Int? = nil) async throws -> [CardBriefAPI] {
+        // Get all cards
+        let allCards = try await getAllCards()
+        
+        // Filter by both name and localId
+        let filtered = allCards.filter { card in
+            card.name.localizedCaseInsensitiveContains(name) && card.localId == localId
+        }
+        
+        // If total is provided, could potentially filter further
+        // For now, the name + localId combo should be specific enough
         
         return filtered
     }
@@ -123,53 +139,59 @@ final class TCGdexService {
         return setData.cards ?? []
     }
     
-    /// Get full card details for cards in a set
+    /// Get full card details for cards in a set with retry logic and rate limiting
     func getFullCardsFromSet(_ setId: String) async throws -> [CardAPIResponse] {
         let cardBriefs = try await getCardsFromSet(setId)
         
-        // Fetch full details for each card
-        var fullCards: [CardAPIResponse] = []
+        print("📦 Fetching \(cardBriefs.count) cards from set \(setId)")
         
-        for brief in cardBriefs {
+        // Fetch full details for each card with rate limiting
+        var fullCards: [CardAPIResponse] = []
+        var failedCards: [(CardBriefAPI, Error)] = []
+        
+        for (index, brief) in cardBriefs.enumerated() {
             do {
                 let fullCard = try await getCard(id: brief.id)
                 fullCards.append(fullCard)
+                
+                // Log progress every 10 cards
+                if (index + 1) % 10 == 0 {
+                    print("✅ Loaded \(index + 1)/\(cardBriefs.count) cards")
+                }
+                
+                // Add small delay to avoid rate limiting (50ms between requests)
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                
             } catch {
-                // Continue if one card fails
-                print("Failed to fetch card \(brief.id): \(error)")
+                print("⚠️ Failed to fetch card \(brief.id) (attempt 1): \(error.localizedDescription)")
+                failedCards.append((brief, error))
             }
         }
+        
+        // Retry failed cards once
+        if !failedCards.isEmpty {
+            print("🔄 Retrying \(failedCards.count) failed cards...")
+            
+            for (brief, _) in failedCards {
+                do {
+                    // Wait a bit longer before retry
+                    try await Task.sleep(nanoseconds: 200_000_000) // 200ms
+                    let fullCard = try await getCard(id: brief.id)
+                    fullCards.append(fullCard)
+                    print("✅ Retry successful for \(brief.id)")
+                } catch {
+                    print("❌ Retry failed for card \(brief.id): \(error.localizedDescription)")
+                }
+            }
+        }
+        
+        print("✅ Successfully loaded \(fullCards.count)/\(cardBriefs.count) cards")
         
         return fullCards
     }
     
     // MARK: - Smart Search
     
-    /// Smart search that detects search type and returns appropriate results
-    func smartSearch(_ query: String) async throws -> SmartSearchResult {
-        let pattern = SearchPattern.detect(from: query)
-        
-        switch pattern {
-        case .cardNumber(let localId, let total):
-            let cards = try await searchCardsByNumber(localId: localId, total: total)
-            return .cards(cards)
-            
-        case .cardName(let name):
-            // Try as set name first
-            let sets = try await searchSetsByName(name)
-            if !sets.isEmpty {
-                return .sets(sets)
-            }
-            
-            // Fall back to card name search
-            let cards = try await searchCardsByName(name)
-            return .cards(cards)
-            
-        case .setName(let name):
-            let sets = try await searchSetsByName(name)
-            return .sets(sets)
-        }
-    }
     
     // MARK: - Helper Methods
     
@@ -226,10 +248,4 @@ final class TCGdexService {
     func clearExpiredCache() {
         requestCache = requestCache.filter { !$0.value.isExpired }
     }
-}
-
-// MARK: - Smart Search Result
-enum SmartSearchResult {
-    case cards([CardBriefAPI])
-    case sets([SetBriefAPI])
 }

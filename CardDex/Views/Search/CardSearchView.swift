@@ -89,8 +89,7 @@ struct CardSearchView: View {
             set: { viewModel.searchMode = $0 }
         )) {
             Text("Set Name").tag(SearchViewModel.SearchMode.setName)
-            Text("Card Name").tag(SearchViewModel.SearchMode.cardName)
-            Text("Card Number").tag(SearchViewModel.SearchMode.cardNumber)
+            Text("Card Name/Number").tag(SearchViewModel.SearchMode.cardNameOrNumber)
         }
         .pickerStyle(.segmented)
         .padding()
@@ -276,14 +275,18 @@ struct CardSearchView: View {
                     Text("Examples: Journey Together, Destined Rivals, Stellar Crown")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                case .cardName:
-                    Text("Examples: Charizard, Pikachu, Mewtwo")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                case .cardNumber:
-                    Text("Examples: 25/167, 1/102, 50")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                case .cardNameOrNumber:
+                    VStack(spacing: 4) {
+                        Text("By name: Charizard, Pikachu, Mewtwo")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("By number: 25/167, 1/102")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("Combined: Dragapult ex 25/167")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

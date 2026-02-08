@@ -26,14 +26,19 @@ final class SearchViewModel {
     // MARK: - Search Mode
     enum SearchMode {
         case setName
-        case cardName
-        case cardNumber
+        case cardNameOrNumber
         
         var placeholder: String {
             switch self {
             case .setName: return "Enter set name (e.g., Journey Together)"
-            case .cardName: return "Search card name (e.g., Charizard)"
-            case .cardNumber: return "Enter card number (e.g., 25/167)"
+            case .cardNameOrNumber: return "Search by name and/or number (e.g., Dragapult ex 25/167)"
+            }
+        }
+        
+        var description: String {
+            switch self {
+            case .setName: return "Search for entire sets by name"
+            case .cardNameOrNumber: return "Search by card name, number, or both"
             }
         }
     }
@@ -69,10 +74,8 @@ final class SearchViewModel {
             switch searchMode {
             case .setName:
                 await searchBySetName()
-            case .cardName:
-                await searchByCardName()
-            case .cardNumber:
-                await searchByCardNumber()
+            case .cardNameOrNumber:
+                await searchByCardNameOrNumber()
             }
         }
         
@@ -112,43 +115,88 @@ final class SearchViewModel {
         }
     }
     
-    private func searchByCardName() async {
+    private func searchByCardNameOrNumber() async {
         do {
-            let cardBriefs = try await apiService.searchCardsByName(searchText)
+            // Parse the search text to extract name and number components
+            let searchPattern = parseSearchInput(searchText)
             
-            if cardBriefs.isEmpty {
-                errorMessage = "No cards found matching '\(searchText)'"
-                cardBriefResults = []
-            } else {
-                cardBriefResults = Array(cardBriefs.prefix(50)) // Limit to 50 results
+            let cardBriefs: [CardBriefAPI]
+            
+            switch searchPattern {
+            case .nameAndNumber(let name, let localId, let total):
+                // Search by both name and number - most specific
+                cardBriefs = try await apiService.searchCardsByNameAndNumber(
+                    name: name,
+                    localId: localId,
+                    total: total
+                )
+                
+                if cardBriefs.isEmpty {
+                    errorMessage = "No cards found matching '\(name)' with number '\(localId)/\(total ?? 0)'"
+                }
+                
+            case .numberOnly(let localId, let total):
+                // Search by number only
+                cardBriefs = try await apiService.searchCardsByNumber(
+                    localId: localId,
+                    total: total
+                )
+                
+                if cardBriefs.isEmpty {
+                    errorMessage = "No cards found with number '\(localId)/\(total ?? 0)'"
+                }
+                
+            case .nameOnly(let name):
+                // Search by name only
+                cardBriefs = try await apiService.searchCardsByName(name)
+                
+                if cardBriefs.isEmpty {
+                    errorMessage = "No cards found matching '\(name)'"
+                }
             }
+            
+            cardBriefResults = Array(cardBriefs.prefix(50)) // Limit to 50 results
+            
         } catch {
             errorMessage = handleError(error)
             cardBriefResults = []
         }
     }
     
-    private func searchByCardNumber() async {
-        do {
-            let pattern = SearchPattern.detect(from: searchText)
+    // MARK: - Search Pattern Detection
+    
+    private enum SearchPattern {
+        case nameAndNumber(name: String, localId: String, total: Int?)
+        case numberOnly(localId: String, total: Int?)
+        case nameOnly(name: String)
+    }
+    
+    private func parseSearchInput(_ input: String) -> SearchPattern {
+        let trimmed = input.trimmingCharacters(in: .whitespaces)
+        
+        // Pattern: "Name 25/167" or "Name 25"
+        // Look for a pattern that ends with a number or number/number
+        let numberPattern = #/(\d+)(?:\/(\d+))?$/#
+        
+        if let match = trimmed.firstMatch(of: numberPattern) {
+            let localId = String(match.1)
+            let total = match.2.map { String($0) }.flatMap { Int($0) }
             
-            guard case .cardNumber(let localId, let total) = pattern else {
-                errorMessage = "Invalid card number format. Use format like '25/167' or '25'"
-                return
-            }
+            // Extract the name part (everything before the number)
+            let nameEndIndex = trimmed.index(match.range.lowerBound, offsetBy: 0)
+            let namePart = String(trimmed[..<nameEndIndex]).trimmingCharacters(in: .whitespaces)
             
-            let cardBriefs = try await apiService.searchCardsByNumber(localId: localId, total: total)
-            
-            if cardBriefs.isEmpty {
-                errorMessage = "No cards found with number '\(searchText)'"
-                cardBriefResults = []
+            if !namePart.isEmpty {
+                // Has both name and number
+                return .nameAndNumber(name: namePart, localId: localId, total: total)
             } else {
-                cardBriefResults = cardBriefs
+                // Number only
+                return .numberOnly(localId: localId, total: total)
             }
-        } catch {
-            errorMessage = handleError(error)
-            cardBriefResults = []
         }
+        
+        // No number pattern found - treat as name only
+        return .nameOnly(name: trimmed)
     }
     
     func selectSet(_ set: SetBriefAPI) async {
@@ -223,8 +271,6 @@ final class SearchViewModel {
             do {
                 let fullCard = try await apiService.getCard(id: cardId)
                 print("✅ Got full card data for: \(fullCard.name)")
-//                #if DEBUG
-//                print(fullCard.)
                 
                 addCardToCollection(fullCard, quantity: quantity)
                 successCount += 1
