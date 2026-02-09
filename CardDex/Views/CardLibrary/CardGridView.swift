@@ -20,13 +20,13 @@ struct CardGridView: View {
         
         if horizontalSizeClass == .regular && verticalSizeClass == .regular {
             // iPad
-            columnCount = UIDevice.current.orientation.isLandscape ? 
-                AppConstants.UI.GridColumns.padLandscape : 
+            columnCount = UIDevice.current.orientation.isLandscape ?
+                AppConstants.UI.GridColumns.padLandscape :
                 AppConstants.UI.GridColumns.padPortrait
         } else {
             // iPhone
-            columnCount = UIDevice.current.orientation.isLandscape ? 
-                AppConstants.UI.GridColumns.phoneLandscape : 
+            columnCount = UIDevice.current.orientation.isLandscape ?
+                AppConstants.UI.GridColumns.phoneLandscape :
                 AppConstants.UI.GridColumns.phonePortrait
         }
         
@@ -36,10 +36,13 @@ struct CardGridView: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: AppConstants.UI.gridSpacing) {
             ForEach(cards, id: \.id) { card in
-                CardGridItemView(card: card)
-                    .onTapGesture {
-                        onCardTap(card)
-                    }
+                Button {
+                    HapticFeedback.light()
+                    onCardTap(card)
+                } label: {
+                    CardGridItemView(card: card)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

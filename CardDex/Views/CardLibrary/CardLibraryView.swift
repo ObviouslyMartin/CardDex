@@ -30,7 +30,7 @@ struct CardLibraryView: View {
                         viewModel.fetchCards()
                     }
             } else {
-                ProgressView()
+                LoadingView("Loading your collection...")
                     .onAppear {
                         viewModel = CardLibraryViewModel(modelContext: modelContext)
                     }
@@ -176,29 +176,18 @@ struct CardLibraryView: View {
     }
     
     private func emptyState(viewModel: CardLibraryViewModel) -> some View {
-        ContentUnavailableView {
-            Label("No Cards", systemImage: "rectangle.stack")
-        } description: {
+        Group {
             if viewModel.hasActiveFilters {
-                Text("No cards match your filters")
-            } else {
-                Text("Add cards to your collection to get started")
-            }
-        } actions: {
-            Button {
-                if viewModel.hasActiveFilters {
+                EmptyStateView.noFilteredResults(onClear: {
+                    HapticFeedback.filterToggled()
                     viewModel.clearFilters()
-                } else {
+                })
+            } else {
+                EmptyStateView.emptyCollection(onAdd: {
+                    HapticFeedback.light()
                     showingSearch = true
-                }
-            } label: {
-                if viewModel.hasActiveFilters {
-                    Text("Clear Filters")
-                } else {
-                    Text("Add Cards")
-                }
+                })
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 }

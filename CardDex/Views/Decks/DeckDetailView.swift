@@ -348,7 +348,7 @@ struct DeckCardRowView: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(types.prefix(2), id: \.self) { type in
+                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
                             TypeBadgeView(type: type, size: .small)
                         }
                     }

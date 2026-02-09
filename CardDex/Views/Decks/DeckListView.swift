@@ -22,7 +22,7 @@ struct DeckListView: View {
             if let viewModel = viewModel {
                 contentView(viewModel: viewModel)
             } else {
-                ProgressView()
+                LoadingView("Loading your decks...")
                     .onAppear {
                         viewModel = DeckListViewModel(modelContext: modelContext)
                     }
@@ -44,6 +44,7 @@ struct DeckListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticFeedback.light()
                         showingCreateDeck = true
                     } label: {
                         Image(systemName: "plus")
@@ -172,37 +173,19 @@ struct DeckListView: View {
     
     @ViewBuilder
     private func emptyState(viewModel: DeckListViewModel) -> some View {
-        VStack(spacing: 20) {
-            Image(systemName: "square.stack.3d.up.slash")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
-            
-            Text(viewModel.hasActiveFilters ? "No Matching Decks" : "No Decks Yet")
-                .font(.title2.bold())
-            
-            Text(viewModel.hasActiveFilters ?
-                 "Try adjusting your filters or search" :
-                 "Create your first deck to get started")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            
-            Button {
-                if viewModel.hasActiveFilters {
+        Group {
+            if viewModel.hasActiveFilters {
+                EmptyStateView.noFilteredResults(onClear: {
+                    HapticFeedback.filterToggled()
                     viewModel.clearFilters()
-                } else {
+                })
+            } else {
+                EmptyStateView.emptyDecks(onCreate: {
+                    HapticFeedback.deckCreated()
                     showingCreateDeck = true
-                }
-            } label: {
-                Label(viewModel.hasActiveFilters ? "Clear Filters" : "Create Deck",
-                      systemImage: viewModel.hasActiveFilters ? "xmark.circle" : "plus")
-                    .font(.headline)
-                    .padding()
-                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(.white)
+                })
             }
         }
-        .padding()
     }
 }
 
@@ -226,7 +209,10 @@ struct DeckCardView: View {
                     
                     Spacer()
                     
-                    Button(action: onFavorite) {
+                    Button(action: {
+                        HapticFeedback.selection()
+                        onFavorite()
+                    }) {
                         Image(systemName: deck.isFavorite ? "star.fill" : "star")
                             .foregroundStyle(deck.isFavorite ? .yellow : .secondary)
                     }
@@ -293,11 +279,17 @@ struct DeckCardView: View {
                     
                     // Action buttons
                     HStack(spacing: 16) {
-                        Button(action: onDuplicate) {
+                        Button(action: {
+                            HapticFeedback.light()
+                            onDuplicate()
+                        }) {
                             Image(systemName: "doc.on.doc")
                         }
                         
-                        Button(action: onDelete) {
+                        Button(action: {
+                            HapticFeedback.warning()
+                            onDelete()
+                        }) {
                             Image(systemName: "trash")
                                 .foregroundStyle(.red)
                         }
@@ -309,11 +301,12 @@ struct DeckCardView: View {
             }
         }
         .buttonStyle(.plain)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .cardStyle()
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(deck.isValid ? Color.green.opacity(0.3) : Color.clear, lineWidth: 2)
+                .strokeBorder(deck.isValid ? Color.successGreen.opacity(0.3) : Color.clear, lineWidth: 2)
         )
+        .cardAppearance()
     }
 }
 

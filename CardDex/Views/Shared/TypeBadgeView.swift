@@ -5,7 +5,6 @@
 //  Created by Martin Plut on 2/1/26.
 //
 
-
 import SwiftUI
 
 struct TypeBadgeView: View {
@@ -48,32 +47,7 @@ struct TypeBadgeView: View {
     }
     
     private var typeColor: Color {
-        switch type.lowercased() {
-        case "fire":
-            return .red
-        case "water":
-            return .blue
-        case "grass":
-            return .green
-        case "lightning", "electric":
-            return .yellow
-        case "psychic":
-            return .purple
-        case "fighting":
-            return .orange
-        case "darkness", "dark":
-            return .black
-        case "metal", "steel":
-            return .gray
-        case "dragon":
-            return .indigo
-        case "fairy":
-            return .pink
-        case "colorless", "normal":
-            return .secondary
-        default:
-            return .gray
-        }
+        Color.typeColor(for: type)
     }
 }
 

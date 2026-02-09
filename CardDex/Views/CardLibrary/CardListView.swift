@@ -15,10 +15,13 @@ struct CardListView: View {
     var body: some View {
         LazyVStack(spacing: 12) {
             ForEach(cards, id: \.id) { card in
-                CardRowView(card: card)
-                    .onTapGesture {
-                        onCardTap(card)
-                    }
+                Button {
+                    HapticFeedback.light()
+                    onCardTap(card)
+                } label: {
+                    CardRowView(card: card)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

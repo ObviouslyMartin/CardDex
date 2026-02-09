@@ -20,14 +20,12 @@ struct CardRowView: View {
                     .aspectRatio(contentMode: .fit)
             } placeholder: {
                 Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .overlay {
-                        ProgressView()
-                    }
+                    .fill(LinearGradient.shimmer)
+                    .shimmer()
             }
             .frame(width: 60, height: 84)
             .clipShape(RoundedRectangle(cornerRadius: 6))
-            .shadow(radius: 2)
+            .shadow(color: Color.cardShadow, radius: 3, x: 0, y: 2)
             
             // Card Info
             VStack(alignment: .leading, spacing: 4) {
@@ -38,7 +36,7 @@ struct CardRowView: View {
                 HStack(spacing: 6) {
                     // Type badges
                     if let types = card.types {
-                        ForEach(types, id: \.self) { type in
+                        ForEach(Array(types.enumerated()), id: \.offset) { index, type in
                             TypeBadgeView(type: type)
                         }
                     }
@@ -81,7 +79,8 @@ struct CardRowView: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .cardStyle()
+        .cardAppearance()
     }
 }
 

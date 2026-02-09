@@ -20,14 +20,12 @@ struct CardGridItemView: View {
                     .aspectRatio(AppConstants.UI.cardAspectRatio, contentMode: .fit)
             } placeholder: {
                 Rectangle()
-                    .fill(Color.gray.opacity(0.2))
+                    .fill(LinearGradient.shimmer)
                     .aspectRatio(AppConstants.UI.cardAspectRatio, contentMode: .fit)
-                    .overlay {
-                        ProgressView()
-                    }
+                    .shimmer()
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .shadow(radius: 2)
+            .shadow(color: Color.cardShadow, radius: 3, x: 0, y: 2)
             
             // Card Info
             VStack(alignment: .leading, spacing: 4) {
@@ -51,6 +49,7 @@ struct CardGridItemView: View {
                 }
             }
         }
+        .cardAppearance()
     }
 }
 

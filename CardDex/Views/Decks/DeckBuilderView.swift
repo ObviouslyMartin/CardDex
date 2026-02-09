@@ -151,6 +151,7 @@ struct DeckBuilderView: View {
                                 card: card,
                                 quantityInDeck: viewModel.cardQuantityInDeck(card),
                                 canAdd: viewModel.canAddCard(card),
+                                availableQuantity: viewModel.availableQuantity(for: card),
                                 onAdd: { viewModel.addCard(card) }
                             )
                         }
@@ -199,6 +200,7 @@ struct DeckBuilderView: View {
                             DeckCardEditRow(
                                 card: card,
                                 quantity: deckCard.quantity,
+                                canAddMore: viewModel.canAddCard(card),
                                 onIncrement: { viewModel.addCard(card, quantity: 1) },
                                 onDecrement: { viewModel.removeCard(card, quantity: 1) },
                                 onRemove: { viewModel.removeCardCompletely(card) }
@@ -239,6 +241,7 @@ struct CollectionCardRow: View {
     let card: Card
     let quantityInDeck: Int
     let canAdd: Bool
+    let availableQuantity: Int
     let onAdd: () -> Void
     
     var body: some View {
@@ -264,7 +267,7 @@ struct CollectionCardRow: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(types.prefix(2), id: \.self) { type in
+                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
                             TypeBadgeView(type: type, size: .small)
                         }
                     }
@@ -276,11 +279,29 @@ struct CollectionCardRow: View {
                     }
                 }
                 
-                // Show quantity in deck if any
-                if quantityInDeck > 0 {
-                    Text("\(quantityInDeck) in deck")
+                // Show owned and in-deck quantities
+                HStack(spacing: 8) {
+                    Text("Own: \(card.quantityOwned)")
                         .font(.caption)
                         .foregroundStyle(.blue)
+                    
+                    if quantityInDeck > 0 {
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("In deck: \(quantityInDeck)")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                    
+                    if availableQuantity > 0 {
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("Available: \(availableQuantity)")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
             
@@ -288,14 +309,21 @@ struct CollectionCardRow: View {
             
             // Add button
             Button(action: onAdd) {
-                Image(systemName: canAdd ? "plus.circle.fill" : "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(canAdd ? .blue : .green)
+                if canAdd {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.blue)
+                } else {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(quantityInDeck >= 4 ? .green : .gray)
+                }
             }
             .disabled(!canAdd)
         }
         .padding()
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .opacity(availableQuantity == 0 ? 0.5 : 1.0)
     }
 }
 
@@ -304,6 +332,7 @@ struct CollectionCardRow: View {
 struct DeckCardEditRow: View {
     let card: Card
     let quantity: Int
+    let canAddMore: Bool
     let onIncrement: () -> Void
     let onDecrement: () -> Void
     let onRemove: () -> Void
@@ -331,11 +360,16 @@ struct DeckCardEditRow: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(types.prefix(2), id: \.self) { type in
+                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
                             TypeBadgeView(type: type, size: .small)
                         }
                     }
                 }
+                
+                // Show owned quantity
+                Text("Own: \(card.quantityOwned)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
@@ -355,9 +389,9 @@ struct DeckCardEditRow: View {
                 Button(action: onIncrement) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(canAddMore ? .blue : .gray)
                 }
-                .disabled(quantity >= 4)
+                .disabled(!canAddMore)
                 
                 Button(action: onRemove) {
                     Image(systemName: "trash.circle.fill")

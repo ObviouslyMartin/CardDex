@@ -21,7 +21,6 @@ struct CardDetailView: View {
         _quantity = State(initialValue: card.quantityOwned)
         
         // Debug: Log what data we have
-        #if DEBUG
         print("🔍 CardDetailView loaded for: \(card.name)")
         print("  - ID: \(card.id)")
         print("  - Supertype: \(card.supertype)")
@@ -38,8 +37,8 @@ struct CardDetailView: View {
         print("  - Weaknesses: \(card.weaknesses?.count ?? 0)")
         print("  - Resistances: \(card.resistances?.count ?? 0)")
         print("  - Retreat Cost: \(card.retreatCost?.count ?? 0)")
-        print("  - Trainer Effect: \(card.effect ?? "nil")")
-        #endif
+        print("  - Effect: \(card.effect ?? "nil")")
+        print("  - Trainer Type: \(card.trainerType ?? "nil")")
     }
     
     var body: some View {
@@ -75,6 +74,7 @@ struct CardDetailView: View {
                         if card.isPokemon {
                             pokemonInfo
                         }
+                        
                         // Trainer-specific info
                         if card.isTrainer {
                             trainerInfo
@@ -84,6 +84,7 @@ struct CardDetailView: View {
                         if card.isEnergy {
                             energyInfo
                         }
+                        
                         // Set Info
                         setInfo
                         
@@ -141,8 +142,9 @@ struct CardDetailView: View {
             
             HStack {
                 if let types = card.types {
-                    ForEach(types, id: \.self) { type in
-                        TypeBadgeView(type: type, size: .large)
+                    ForEach(types.indices, id: \.self) { index in
+                        TypeBadgeView(type: types[index], size: .large)
+                            .id("\(card.id)-type-\(index)")
                     }
                 }
                 
@@ -246,9 +248,10 @@ struct CardDetailView: View {
                             Text("Weakness")
                                 .font(.caption.bold())
                             HStack {
-                                ForEach(weaknesses, id: \.type) { weakness in
-                                    TypeBadgeView(type: weakness.type, size: .small)
-                                    Text(weakness.value)
+                                ForEach(weaknesses.indices, id: \.self) { index in
+                                    TypeBadgeView(type: weaknesses[index].type, size: .small)
+                                        .id("\(card.id)-weakness-\(index)")
+                                    Text(weaknesses[index].value)
                                         .font(.caption)
                                 }
                             }
@@ -260,9 +263,10 @@ struct CardDetailView: View {
                             Text("Resistance")
                                 .font(.caption.bold())
                             HStack {
-                                ForEach(resistances, id: \.type) { resistance in
-                                    TypeBadgeView(type: resistance.type, size: .small)
-                                    Text(resistance.value)
+                                ForEach(resistances.indices, id: \.self) { index in
+                                    TypeBadgeView(type: resistances[index].type, size: .small)
+                                        .id("\(card.id)-resistance-\(index)")
+                                    Text(resistances[index].value)
                                         .font(.caption)
                                 }
                             }
@@ -285,39 +289,39 @@ struct CardDetailView: View {
     }
     
     private var trainerInfo: some View {
-            VStack(spacing: 16) {
-                // Always show a header to confirm this section is rendering
-                Text("Trainer Card Details")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                // Trainer Type
-                if let trainerType = card.trainerType {
-                    InfoRow(label: "Card Type", value: trainerType)
-                        .padding()
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-                }
-                
-                // Effect
-                if let effect = card.effect {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Effect")
-                            .font(.subheadline.bold())
-                        
-                        Text(effect)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+        VStack(spacing: 16) {
+            // Always show a header to confirm this section is rendering
+            Text("Trainer Card Details")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Trainer Type
+            if let trainerType = card.trainerType {
+                InfoRow(label: "Card Type", value: trainerType)
                     .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-                }
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
             }
-            .padding()
-            .background(Color.orange.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+            
+            // Effect
+            if let effect = card.effect {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Effect")
+                        .font(.subheadline.bold())
+                    
+                    Text(effect)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+            }
         }
-        
+        .padding()
+        .background(Color.orange.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+    }
+    
     private var energyInfo: some View {
         VStack(spacing: 16) {
             // Always show a header to confirm this section is rendering
@@ -344,7 +348,6 @@ struct CardDetailView: View {
         .padding()
         .background(Color.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
     }
-
     
     private var setInfo: some View {
         VStack(spacing: 8) {
@@ -444,8 +447,9 @@ struct AttackView: View {
             
             if let cost = attack.cost, !cost.isEmpty {
                 HStack(spacing: 4) {
-                    ForEach(cost, id: \.self) { energy in
-                        TypeBadgeView(type: energy, size: .small)
+                    ForEach(cost.indices, id: \.self) { index in
+                        TypeBadgeView(type: cost[index], size: .small)
+                            .id("\(attack.name)-energy-\(index)")
                     }
                 }
             }
