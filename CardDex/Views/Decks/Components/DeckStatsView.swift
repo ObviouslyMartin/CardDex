@@ -48,49 +48,53 @@ struct DeckStatsView: View {
                 StatCard(
                     title: "Total Cards",
                     value: "\(deck.totalCards)",
-                    subtitle: "/ 60",
+//                    subtitle: "/ 60",
+                    icon: "square.stack.3d.up.fill",
                     color: deck.isValid ? .green : .orange,
-                    icon: "square.stack.3d.up.fill"
                 )
                 
                 StatCard(
                     title: "Unique Cards",
                     value: "\(deck.uniqueCards)",
-                    subtitle: "different cards",
-                    color: .blue,
-                    icon: "square.grid.2x2"
+//                    subtitle: "different cards",
+                    icon: "square.grid.2x2",
+                    color: .blue
+                    
                 )
                 
                 StatCard(
                     title: "Pokémon",
                     value: "\(deck.pokemonCount)",
-                    subtitle: "\(percentageString(deck.pokemonCount))",
-                    color: .blue,
-                    icon: "person.fill"
+//                    subtitle: "\(percentageString(deck.pokemonCount))",
+                    icon: "person.fill",
+                    color: .blue
+                    
                 )
                 
                 StatCard(
                     title: "Trainers",
                     value: "\(deck.trainerCount)",
-                    subtitle: "\(percentageString(deck.trainerCount))",
-                    color: .purple,
-                    icon: "figure.walk"
+//                    subtitle: "\(percentageString(deck.trainerCount))",
+                    icon: "figure.walk",
+                    color: .purple
+                    
                 )
                 
                 StatCard(
                     title: "Energy",
                     value: "\(deck.energyCount)",
-                    subtitle: "\(percentageString(deck.energyCount))",
-                    color: .yellow,
-                    icon: "bolt.fill"
+//                    subtitle: "\(percentageString(deck.energyCount))",
+                    icon: "bolt.fill",
+                    color: .yellow
+                    
                 )
                 
                 StatCard(
                     title: "Status",
                     value: deck.isValid ? "Valid" : "Invalid",
-                    subtitle: deck.isValid ? "60 cards" : "\(abs(60 - deck.totalCards)) off",
-                    color: deck.isValid ? .green : .red,
-                    icon: deck.isValid ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
+//                    subtitle: deck.isValid ? "60 cards" : "\(abs(60 - deck.totalCards)) off",
+                    icon: deck.isValid ? "checkmark.seal.fill" : "exclamationmark.triangle.fill",
+                    color: deck.isValid ? .green : .red
                 )
             }
         }
@@ -271,35 +275,35 @@ struct DeckStatsView: View {
 
 // MARK: - Supporting Views
 
-struct StatCard: View {
-    let title: String
-    let value: String
-    let subtitle: String
-    let color: Color
-    let icon: String
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(color)
-            
-            Text(value)
-                .font(.title2.bold())
-            
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.primary)
-            
-            Text(subtitle)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
-    }
-}
+//struct StatCard: View {
+//    let title: String
+//    let value: String
+//    let subtitle: String
+//    let color: Color
+//    let icon: String
+//    
+//    var body: some View {
+//        VStack(spacing: 8) {
+//            Image(systemName: icon)
+//                .font(.title2)
+//                .foregroundStyle(color)
+//            
+//            Text(value)
+//                .font(.title2.bold())
+//            
+//            Text(title)
+//                .font(.caption)
+//                .foregroundStyle(.primary)
+//            
+//            Text(subtitle)
+//                .font(.caption2)
+//                .foregroundStyle(.secondary)
+//        }
+//        .frame(maxWidth: .infinity)
+//        .padding()
+//        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+//    }
+//}
 
 struct LegendItem: View {
     let color: Color

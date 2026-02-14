@@ -70,6 +70,8 @@ struct CreateDeckView: View {
         let trimmedName = deckName.trimmingCharacters(in: .whitespaces)
         let trimmedDescription = deckDescription.trimmingCharacters(in: .whitespaces)
         
+        HapticFeedback.deckCreated()
+        
         viewModel.createDeck(
             name: trimmedName,
             description: trimmedDescription.isEmpty ? nil : trimmedDescription
@@ -78,7 +80,6 @@ struct CreateDeckView: View {
         dismiss()
     }
 }
-
 
 #Preview {
     @Previewable @State var modelContext = {

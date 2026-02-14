@@ -5,7 +5,6 @@
 //  Created by Martin Plut on 2/2/26.
 //
 
-
 import Foundation
 import SwiftData
 import SwiftUI
@@ -20,6 +19,7 @@ final class DeckBuilderViewModel {
     // MARK: - State
     var deckCards: [DeckCard] = []
     var availableCards: [Card] = []
+    var basicEnergies: [BasicEnergy] = []
     var searchText: String = "" {
         didSet {
             applyFilters()
@@ -108,15 +108,21 @@ final class DeckBuilderViewModel {
         deckCards = deck.deckCards ?? []
         
         // Fetch all cards from collection
-        let descriptor = FetchDescriptor<Card>(
+        let cardDescriptor = FetchDescriptor<Card>(
             sortBy: [SortDescriptor(\.name)]
         )
         
+        // Fetch basic energies
+        let energyDescriptor = FetchDescriptor<BasicEnergy>(
+            sortBy: [SortDescriptor(\.type)]
+        )
+        
         do {
-            availableCards = try modelContext.fetch(descriptor)
+            availableCards = try modelContext.fetch(cardDescriptor)
+            basicEnergies = try modelContext.fetch(energyDescriptor)
             applyFilters()
         } catch {
-            errorMessage = "Failed to fetch cards: \(error.localizedDescription)"
+            errorMessage = "Failed to fetch data: \(error.localizedDescription)"
         }
     }
     
@@ -415,5 +421,52 @@ final class DeckBuilderViewModel {
         } catch {
             errorMessage = "Failed to save changes: \(error.localizedDescription)"
         }
+    }
+    
+    // MARK: - Basic Energy Management
+    
+    func basicEnergyQuantity(for type: String) -> Int {
+        deck.basicEnergyQuantity(for: type)
+    }
+    
+    func basicEnergyOwned(for type: String) -> Int {
+        basicEnergies.first(where: { $0.type == type })?.count ?? 0
+    }
+    
+    func basicEnergyAvailable(for type: String) -> Int {
+        let owned = basicEnergyOwned(for: type)
+        let inDeck = basicEnergyQuantity(for: type)
+        return max(0, owned - inDeck)
+    }
+    
+    func canAddBasicEnergy(type: String, quantity: Int = 1) -> Bool {
+        basicEnergyAvailable(for: type) >= quantity
+    }
+    
+    func addBasicEnergy(type: String, quantity: Int = 1) {
+        // Check if we have enough available
+        guard canAddBasicEnergy(type: type, quantity: quantity) else {
+            print("⚠️ Cannot add \(quantity) \(type) energy - only \(basicEnergyAvailable(for: type)) available")
+            return
+        }
+        
+        deck.addBasicEnergy(type: type, quantity: quantity)
+        deck.updatedAt = Date()
+        saveContext()
+    }
+    
+    func removeBasicEnergy(type: String, quantity: Int = 1) {
+        deck.removeBasicEnergy(type: type, quantity: quantity)
+        deck.updatedAt = Date()
+        saveContext()
+    }
+    
+    func setBasicEnergyQuantity(type: String, quantity: Int) {
+        let owned = basicEnergyOwned(for: type)
+        let clamped = min(quantity, owned) // Don't allow more than owned
+        
+        deck.setBasicEnergy(type: type, quantity: clamped)
+        deck.updatedAt = Date()
+        saveContext()
     }
 }

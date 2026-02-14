@@ -5,7 +5,6 @@
 //  Created by Martin Plut on 2/1/26.
 //
 
-
 import SwiftUI
 import SwiftData
 
@@ -21,7 +20,7 @@ struct CardSearchView: View {
                 if let viewModel = viewModel {
                     contentView(viewModel: viewModel)
                 } else {
-                    ProgressView()
+                    LoadingView("Preparing search...")
                 }
             }
             .navigationTitle("Add Cards")
@@ -36,6 +35,7 @@ struct CardSearchView: View {
                 if let viewModel = viewModel, viewModel.hasSelectedCards {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Add \(viewModel.selectedCardsCount)") {
+                            HapticFeedback.cardAdded()
                             showingBulkAddSheet = true
                         }
                     }
@@ -65,7 +65,7 @@ struct CardSearchView: View {
             
             // Content
             if viewModel.isSearching && viewModel.cardBriefResults.isEmpty && viewModel.setSearchResults.isEmpty {
-                ProgressView("Searching...")
+                LoadingView("Searching...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if !viewModel.setSearchResults.isEmpty {
                 // Show set selection list (multiple sets found)

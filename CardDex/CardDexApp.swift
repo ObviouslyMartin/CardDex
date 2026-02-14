@@ -20,7 +20,8 @@ struct CardDexApp: App {
                 Card.self,
                 CardSet.self,
                 Deck.self,
-                DeckCard.self
+                DeckCard.self,
+                BasicEnergy.self
             ])
             
             let modelConfiguration = ModelConfiguration(

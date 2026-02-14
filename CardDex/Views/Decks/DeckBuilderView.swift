@@ -5,6 +5,7 @@
 //  Created by Martin Plut on 2/2/26.
 //
 
+
 import SwiftUI
 import SwiftData
 
@@ -152,7 +153,10 @@ struct DeckBuilderView: View {
                                 quantityInDeck: viewModel.cardQuantityInDeck(card),
                                 canAdd: viewModel.canAddCard(card),
                                 availableQuantity: viewModel.availableQuantity(for: card),
-                                onAdd: { viewModel.addCard(card) }
+                                onAdd: {
+                                    HapticFeedback.cardAddedToDeck()
+                                    viewModel.addCard(card)
+                                }
                             )
                         }
                     }
@@ -190,26 +194,84 @@ struct DeckBuilderView: View {
     
     @ViewBuilder
     private func deckView(viewModel: DeckBuilderViewModel) -> some View {
-        if viewModel.deckCards.isEmpty {
-            emptyDeckState
-        } else {
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(viewModel.sortDeckCards(by: .name), id: \.id) { deckCard in
-                        if let card = deckCard.card {
-                            DeckCardEditRow(
-                                card: card,
-                                quantity: deckCard.quantity,
-                                canAddMore: viewModel.canAddCard(card),
-                                onIncrement: { viewModel.addCard(card, quantity: 1) },
-                                onDecrement: { viewModel.removeCard(card, quantity: 1) },
-                                onRemove: { viewModel.removeCardCompletely(card) }
-                            )
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                // Regular cards section
+                if !viewModel.deckCards.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Cards")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal)
+                        
+                        ForEach(viewModel.sortDeckCards(by: .name), id: \.id) { deckCard in
+                            if let card = deckCard.card {
+                                DeckCardEditRow(
+                                    card: card,
+                                    quantity: deckCard.quantity,
+                                    canAddMore: viewModel.canAddCard(card),
+                                    onIncrement: {
+                                        HapticFeedback.light()
+                                        viewModel.addCard(card, quantity: 1)
+                                    },
+                                    onDecrement: {
+                                        HapticFeedback.light()
+                                        viewModel.removeCard(card, quantity: 1)
+                                    },
+                                    onRemove: {
+                                        HapticFeedback.cardRemovedFromDeck()
+                                        viewModel.removeCardCompletely(card)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
-                .padding()
+                
+                // Basic energy section
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Basic Energy")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        Text("\(String(describing: deck.totalBasicEnergies)) cards")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal)
+                    
+                    ForEach(BasicEnergy.allTypes, id: \.self) { type in
+                        DeckBasicEnergyRow(
+                            energyType: type,
+                            quantity: viewModel.basicEnergyQuantity(for: type),
+                            owned: viewModel.basicEnergyOwned(for: type),
+                            available: viewModel.basicEnergyAvailable(for: type),
+                            canAddMore: viewModel.canAddBasicEnergy(type: type),
+                            onIncrement: {
+                                HapticFeedback.light()
+                                viewModel.addBasicEnergy(type: type)
+                            },
+                            onDecrement: {
+                                HapticFeedback.light()
+                                viewModel.removeBasicEnergy(type: type)
+                            },
+                            onEdit: { newQuantity in
+                                HapticFeedback.light()
+                                viewModel.setBasicEnergyQuantity(type: type, quantity: newQuantity)
+                            }
+                        )
+                    }
+                }
+                
+                // Empty state if completely empty
+                if viewModel.deckCards.isEmpty && deck.totalBasicEnergies() == 0 {
+                    emptyDeckState
+                }
             }
+            .padding()
         }
     }
     
@@ -267,8 +329,10 @@ struct CollectionCardRow: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
+                        ForEach(Array(types.prefix(2)).indices, id: \.self) { index in
+                            let type = Array(types.prefix(2))[index]
                             TypeBadgeView(type: type, size: .small)
+                                .id("\(card.id)-type-\(index)")
                         }
                     }
                     
@@ -360,8 +424,10 @@ struct DeckCardEditRow: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
+                        ForEach(Array(types.prefix(2)).indices, id: \.self) { index in
+                            let type = Array(types.prefix(2))[index]
                             TypeBadgeView(type: type, size: .small)
+                                .id("\(card.id)-type-\(index)")
                         }
                     }
                 }
@@ -447,6 +513,222 @@ struct FilterSheet: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Deck Basic Energy Row
+
+struct DeckBasicEnergyRow: View {
+    let energyType: String
+    let quantity: Int
+    let owned: Int
+    let available: Int
+    let canAddMore: Bool
+    let onIncrement: () -> Void
+    let onDecrement: () -> Void
+    let onEdit: (Int) -> Void
+    
+    @State private var showingEditSheet = false
+    
+    var body: some View {
+        Button {
+            showingEditSheet = true
+        } label: {
+            HStack(spacing: 12) {
+                // Energy icon
+                ZStack {
+                    Circle()
+                        .fill(Color.typeColor(for: energyType).opacity(0.2))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: energyIcon)
+                        .font(.body)
+                        .foregroundStyle(Color.typeColor(for: energyType))
+                }
+                
+                // Energy name and availability
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(energyType) Energy")
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    
+                    Text("\(available) available")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                // Controls
+                HStack(spacing: 12) {
+                    Button(action: onDecrement) {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(quantity > 0 ? .red : .gray)
+                    }
+                    .disabled(quantity == 0)
+                    .buttonStyle(.plain)
+                    
+                    Text("\(quantity)")
+                        .font(.body.bold().monospacedDigit())
+                        .foregroundStyle(.primary)
+                        .frame(minWidth: 30)
+                    
+                    Button(action: onIncrement) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(canAddMore ? .green : .gray)
+                    }
+                    .disabled(!canAddMore)
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+        .background(
+            quantity > 0 ? Color.typeColor(for: energyType).opacity(0.05) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 8)
+        )
+        .sheet(isPresented: $showingEditSheet) {
+            EditBasicEnergySheet(
+                energyType: energyType,
+                currentQuantity: quantity,
+                maxQuantity: owned,
+                onSave: onEdit
+            )
+        }
+    }
+    
+    private var energyIcon: String {
+        switch energyType.lowercased() {
+        case "grass": return "leaf.fill"
+        case "fire": return "flame.fill"
+        case "water": return "drop.fill"
+        case "lightning": return "bolt.fill"
+        case "psychic": return "brain.head.profile"
+        case "fighting": return "figure.boxing"
+        case "darkness": return "moon.fill"
+        case "metal": return "shield.fill"
+        case "fairy": return "sparkles"
+        case "dragon": return "tornado"
+        default: return "circle.fill"
+        }
+    }
+}
+
+// MARK: - Edit Basic Energy Sheet
+
+struct EditBasicEnergySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let energyType: String
+    let currentQuantity: Int
+    let maxQuantity: Int
+    let onSave: (Int) -> Void
+    
+    @State private var quantityText: String
+    @FocusState private var isTextFieldFocused: Bool
+    
+    init(energyType: String, currentQuantity: Int, maxQuantity: Int, onSave: @escaping (Int) -> Void) {
+        self.energyType = energyType
+        self.currentQuantity = currentQuantity
+        self.maxQuantity = maxQuantity
+        self.onSave = onSave
+        _quantityText = State(initialValue: "\(currentQuantity)")
+    }
+    
+    var isValid: Bool {
+        guard let quantity = Int(quantityText) else { return false }
+        return quantity >= 0 && quantity <= maxQuantity
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Energy icon
+                ZStack {
+                    Circle()
+                        .fill(Color.typeColor(for: energyType).opacity(0.2))
+                        .frame(width: 100, height: 100)
+                    
+                    Image(systemName: energyIcon)
+                        .font(.system(size: 50))
+                        .foregroundStyle(Color.typeColor(for: energyType))
+                }
+                .padding(.top, 20)
+                
+                // Energy type
+                Text("\(energyType) Energy")
+                    .font(.title2.bold())
+                
+                // Count input
+                VStack(spacing: 8) {
+                    Text("How many in this deck?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    
+                    Text("You own \(maxQuantity)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("Quantity", text: $quantityText)
+                        .keyboardType(.numberPad)
+                        .font(.system(size: 60, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .focused($isTextFieldFocused)
+                        .frame(height: 80)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    
+                    if let quantity = Int(quantityText), quantity > maxQuantity {
+                        Text("Cannot add more than \(maxQuantity)")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+            }
+            .navigationTitle("Edit Quantity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        if let quantity = Int(quantityText) {
+                            onSave(quantity)
+                            dismiss()
+                        }
+                    }
+                    .disabled(!isValid)
+                }
+            }
+            .onAppear {
+                isTextFieldFocused = true
+            }
+        }
+    }
+    
+    private var energyIcon: String {
+        switch energyType.lowercased() {
+        case "grass": return "leaf.fill"
+        case "fire": return "flame.fill"
+        case "water": return "drop.fill"
+        case "lightning": return "bolt.fill"
+        case "psychic": return "brain.head.profile"
+        case "fighting": return "figure.boxing"
+        case "darkness": return "moon.fill"
+        case "metal": return "shield.fill"
+        case "fairy": return "sparkles"
+        case "dragon": return "tornado"
+        default: return "circle.fill"
         }
     }
 }

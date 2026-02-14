@@ -21,6 +21,10 @@ final class Deck {
     @Relationship(deleteRule: .cascade, inverse: \DeckCard.deck)
     var deckCards: [DeckCard]?
     
+    // Basic energy counts: [EnergyType: Count]
+    // e.g., ["Fire": 10, "Water": 5]
+    var basicEnergies: [String: Int]?
+    
     init(
         id: UUID = UUID(),
         name: String,
@@ -35,13 +39,16 @@ final class Deck {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.isFavorite = isFavorite
+        self.basicEnergies = [:]
     }
 }
 
 // MARK: - Computed Properties
 extension Deck {
     var totalCards: Int {
-        deckCards?.reduce(0) { $0 + $1.quantity } ?? 0
+        let deckCardCount = deckCards?.reduce(0) { $0 + $1.quantity } ?? 0
+        let basicEnergyCount = basicEnergies?.values.reduce(0, +) ?? 0
+        return deckCardCount + basicEnergyCount
     }
     
     var uniqueCards: Int {
@@ -63,8 +70,10 @@ extension Deck {
     }
     
     var energyCount: Int {
-        deckCards?.filter { $0.card?.isEnergy == true }
+        let cardEnergyCount = deckCards?.filter { $0.card?.isEnergy == true }
             .reduce(0) { $0 + $1.quantity } ?? 0
+        let basicEnergyCount = basicEnergies?.values.reduce(0, +) ?? 0
+        return cardEnergyCount + basicEnergyCount
     }
     
     var energyTypes: [String: Int] {
@@ -104,5 +113,41 @@ extension Deck {
     func canAddCard(_ card: Card) -> Bool {
         let currentQuantity = cardQuantity(for: card)
         return currentQuantity < 4 // Standard format rule
+    }
+    
+    // MARK: - Basic Energy Methods
+    
+    func basicEnergyQuantity(for type: String) -> Int {
+        basicEnergies?[type] ?? 0
+    }
+    
+    func setBasicEnergy(type: String, quantity: Int) {
+        if basicEnergies == nil {
+            basicEnergies = [:]
+        }
+        basicEnergies?[type] = max(0, quantity)
+    }
+    
+    func addBasicEnergy(type: String, quantity: Int = 1) {
+        if basicEnergies == nil {
+            basicEnergies = [:]
+        }
+        let currentQuantity = basicEnergies?[type] ?? 0
+        basicEnergies?[type] = currentQuantity + quantity
+    }
+    
+    func removeBasicEnergy(type: String, quantity: Int = 1) {
+        guard let currentQuantity = basicEnergies?[type] else { return }
+        let newQuantity = max(0, currentQuantity - quantity)
+        
+        if newQuantity == 0 {
+            basicEnergies?.removeValue(forKey: type)
+        } else {
+            basicEnergies?[type] = newQuantity
+        }
+    }
+    
+    func totalBasicEnergies() -> Int {
+        basicEnergies?.values.reduce(0, +) ?? 0
     }
 }

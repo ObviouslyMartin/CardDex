@@ -21,6 +21,11 @@ struct ContentView: View {
                     Label("Decks", systemImage: "square.stack.3d.up")
                 }
             
+            BasicEnergyView()
+                .tabItem {
+                    Label("Energy", systemImage: "bolt.fill")
+                }
+            
             Text("Stats Coming Soon")
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar")
@@ -31,5 +36,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: [Card.self, Deck.self, CardSet.self, DeckCard.self], inMemory: true)
+        .modelContainer(for: [Card.self, Deck.self, CardSet.self, DeckCard.self, BasicEnergy.self], inMemory: true)
 }

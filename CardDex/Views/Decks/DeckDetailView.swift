@@ -42,12 +42,14 @@ struct DeckDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
+                        HapticFeedback.light()
                         showingDeckBuilder = true
                     } label: {
                         Label("Edit Deck", systemImage: "pencil")
                     }
                     
                     Button {
+                        HapticFeedback.light()
                         showingEditDeck = true
                     } label: {
                         Label("Deck Info", systemImage: "info.circle")
@@ -56,6 +58,7 @@ struct DeckDetailView: View {
                     Divider()
                     
                     Button {
+                        HapticFeedback.light()
                         exportDeckList()
                     } label: {
                         Label("Export", systemImage: "square.and.arrow.up")
@@ -244,6 +247,44 @@ struct DeckDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
             }
+            
+            // Basic energies section
+            if let basicEnergies = deck.basicEnergies, !basicEnergies.isEmpty {
+                Divider()
+                    .padding(.vertical, 8)
+                
+                Text("Basic Energy (\(String(describing: deck.totalBasicEnergies)))")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.secondary)
+                
+                VStack(spacing: 8) {
+                    ForEach(basicEnergies.sorted(by: { $0.key < $1.key }), id: \.key) { type, quantity in
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.typeColor(for: type).opacity(0.2))
+                                    .frame(width: 32, height: 32)
+                                
+                                Image(systemName: energyIcon(for: type))
+                                    .font(.caption)
+                                    .foregroundStyle(Color.typeColor(for: type))
+                            }
+                            
+                            Text("\(type) Energy")
+                                .font(.subheadline)
+                            
+                            Spacer()
+                            
+                            Text("×\(quantity)")
+                                .font(.subheadline.bold().monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.typeColor(for: type).opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+            }
         }
         .padding()
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -299,6 +340,22 @@ struct DeckDetailView: View {
             rootVC.present(activityVC, animated: true)
         }
     }
+    
+    private func energyIcon(for type: String) -> String {
+        switch type.lowercased() {
+        case "grass": return "leaf.fill"
+        case "fire": return "flame.fill"
+        case "water": return "drop.fill"
+        case "lightning": return "bolt.fill"
+        case "psychic": return "brain.head.profile"
+        case "fighting": return "figure.boxing"
+        case "darkness": return "moon.fill"
+        case "metal": return "shield.fill"
+        case "fairy": return "sparkles"
+        case "dragon": return "tornado"
+        default: return "circle.fill"
+        }
+    }
 }
 
 // MARK: - Supporting Views
@@ -348,8 +405,10 @@ struct DeckCardRowView: View {
                 
                 HStack(spacing: 4) {
                     if let types = card.types {
-                        ForEach(Array(types.prefix(2).enumerated()), id: \.offset) { index, type in
+                        ForEach(Array(types.prefix(2)).indices, id: \.self) { index in
+                            let type = Array(types.prefix(2))[index]
                             TypeBadgeView(type: type, size: .small)
+                                .id("\(card.id)-type-\(index)")
                         }
                     }
                 }

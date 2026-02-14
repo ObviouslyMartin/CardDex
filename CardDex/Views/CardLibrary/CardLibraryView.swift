@@ -100,9 +100,15 @@ struct CardLibraryView: View {
                 prompt: "Search your collection"
             )
             .sheet(isPresented: $showingSearch) {
+                // Refresh cards when search sheet is dismissed
+                viewModel.fetchCards()
+            } content: {
                 CardSearchView()
             }
             .sheet(isPresented: $showingFilters) {
+                // Refresh after filters might have been cleared/changed
+                viewModel.fetchCards()
+            } content: {
                 FilterView(viewModel: viewModel)
             }
             .sheet(item: $selectedCard) { card in
@@ -136,6 +142,9 @@ struct CardLibraryView: View {
                 }
             }
             .padding()
+        }
+        .refreshable {
+            viewModel.fetchCards()
         }
     }
     

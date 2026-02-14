@@ -95,6 +95,9 @@ struct DeckListView: View {
                 set: { viewModel.searchText = $0 }
             ), prompt: "Search decks")
             .sheet(isPresented: $showingCreateDeck) {
+                // Refresh decks when create sheet is dismissed (deck was created)
+                viewModel.fetchDecks()
+            } content: {
                 CreateDeckView(viewModel: viewModel)
             }
             .sheet(item: $selectedDeck) { deck in
@@ -138,6 +141,9 @@ struct DeckListView: View {
                 }
             }
             .padding()
+        }
+        .refreshable {
+            viewModel.fetchDecks()
         }
     }
     
