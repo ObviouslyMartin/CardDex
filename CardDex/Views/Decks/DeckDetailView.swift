@@ -411,6 +411,14 @@ struct DeckCardRowView: View {
                                 .id("\(card.id)-type-\(index)")
                         }
                     }
+                    if card.isPokemon{
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(card.setName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             

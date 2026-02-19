@@ -341,6 +341,14 @@ struct CollectionCardRow: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    if card.isPokemon{
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(card.setName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 
                 // Show owned and in-deck quantities
@@ -430,7 +438,16 @@ struct DeckCardEditRow: View {
                                 .id("\(card.id)-type-\(index)")
                         }
                     }
+                    if card.isPokemon{
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(card.setName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                
                 
                 // Show owned quantity
                 Text("Own: \(card.quantityOwned)")

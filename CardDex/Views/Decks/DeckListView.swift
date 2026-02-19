@@ -212,6 +212,11 @@ struct DeckCardView: View {
                     Text(deck.name)
                         .font(.headline)
                         .foregroundStyle(.primary)
+                    if !deck.isValid {
+                        Text(deck.deckDescription ?? "")
+                            .font(.footnote.italic())
+                            .foregroundStyle(.secondary)
+                    }
                     
                     Spacer()
                     

@@ -30,7 +30,7 @@ struct CardGridView: View {
                 AppConstants.UI.GridColumns.phonePortrait
         }
         
-        return Array(repeating: GridItem(.flexible(), spacing: AppConstants.UI.gridSpacing), count: columnCount)
+        return Array(repeating: GridItem(.flexible(), spacing: AppConstants.UI.gridSpacing), count: columnCount+1)
     }
     
     var body: some View {
