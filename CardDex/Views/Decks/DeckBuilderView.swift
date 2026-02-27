@@ -559,8 +559,11 @@ struct DeckBasicEnergyRow: View {
                         .fill(Color.typeColor(for: energyType).opacity(0.2))
                         .frame(width: 40, height: 40)
                     
-                    Image(systemName: energyIcon)
-                        .font(.body)
+                    Image(energyIcon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width:40, height:40)
+                        .font(.title2)
                         .foregroundStyle(Color.typeColor(for: energyType))
                 }
                 
@@ -621,16 +624,14 @@ struct DeckBasicEnergyRow: View {
     
     private var energyIcon: String {
         switch energyType.lowercased() {
-        case "grass": return "leaf.fill"
-        case "fire": return "flame.fill"
-        case "water": return "drop.fill"
-        case "lightning": return "bolt.fill"
-        case "psychic": return "brain.head.profile"
-        case "fighting": return "figure.boxing"
-        case "darkness": return "moon.fill"
-        case "metal": return "shield.fill"
-        case "fairy": return "sparkles"
-        case "dragon": return "tornado"
+        case "grass": return "GrassTypeIcon"
+        case "fire": return "FireTypeIcon"
+        case "water": return "WaterTypeIcon"
+        case "lightning": return "ElectricTypeIcon"
+        case "psychic": return "PsychicTypeIcon"
+        case "fighting": return "FightingTypeIcon"
+        case "darkness": return "DarkTypeIcon"
+        case "metal": return "SteelTypeIcon"
         default: return "circle.fill"
         }
     }
@@ -670,8 +671,11 @@ struct EditBasicEnergySheet: View {
                         .fill(Color.typeColor(for: energyType).opacity(0.2))
                         .frame(width: 100, height: 100)
                     
-                    Image(systemName: energyIcon)
-                        .font(.system(size: 50))
+                    Image(energyIcon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width:100, height:100)
+                        .font(.title2)
                         .foregroundStyle(Color.typeColor(for: energyType))
                 }
                 .padding(.top, 20)
@@ -735,16 +739,14 @@ struct EditBasicEnergySheet: View {
     
     private var energyIcon: String {
         switch energyType.lowercased() {
-        case "grass": return "leaf.fill"
-        case "fire": return "flame.fill"
-        case "water": return "drop.fill"
-        case "lightning": return "bolt.fill"
-        case "psychic": return "brain.head.profile"
-        case "fighting": return "figure.boxing"
-        case "darkness": return "moon.fill"
-        case "metal": return "shield.fill"
-        case "fairy": return "sparkles"
-        case "dragon": return "tornado"
+        case "grass": return "GrassTypeIcon"
+        case "fire": return "FireTypeIcon"
+        case "water": return "WaterTypeIcon"
+        case "lightning": return "ElectricTypeIcon"
+        case "psychic": return "PsychicTypeIcon"
+        case "fighting": return "FightingTypeIcon"
+        case "darkness": return "DarkTypeIcon"
+        case "metal": return "SteelTypeIcon"
         default: return "circle.fill"
         }
     }

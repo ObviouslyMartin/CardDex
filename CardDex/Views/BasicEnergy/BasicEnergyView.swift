@@ -146,7 +146,10 @@ struct EnergyCardRow: View {
                         .fill(Color.typeColor(for: energy.type).opacity(0.2))
                         .frame(width: 60, height: 60)
                     
-                    Image(systemName: energy.icon)
+                    Image(energy.icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width:60, height:60)
                         .font(.title2)
                         .foregroundStyle(Color.typeColor(for: energy.type))
                 }
@@ -227,8 +230,11 @@ struct EditEnergyCountSheet: View {
                         .fill(Color.typeColor(for: energy.type).opacity(0.2))
                         .frame(width: 100, height: 100)
                     
-                    Image(systemName: energy.icon)
-                        .font(.system(size: 50))
+                    Image(energy.icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width:60, height:60)
+                        .font(.title2)
                         .foregroundStyle(Color.typeColor(for: energy.type))
                 }
                 .padding(.top, 20)

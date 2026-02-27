@@ -22,7 +22,6 @@ final class BasicEnergyViewModel {
     }
     
     // MARK: - Fetch Operations
-    
     func fetchEnergies() {
         let descriptor = FetchDescriptor<BasicEnergy>(
             sortBy: [SortDescriptor(\.type)]

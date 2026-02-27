@@ -265,8 +265,11 @@ struct DeckDetailView: View {
                                     .fill(Color.typeColor(for: type).opacity(0.2))
                                     .frame(width: 32, height: 32)
                                 
-                                Image(systemName: energyIcon(for: type))
-                                    .font(.caption)
+                                Image(energyIcon(for: type))
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width:32, height:32)
+                                    .font(.title2)
                                     .foregroundStyle(Color.typeColor(for: type))
                             }
                             
@@ -343,16 +346,14 @@ struct DeckDetailView: View {
     
     private func energyIcon(for type: String) -> String {
         switch type.lowercased() {
-        case "grass": return "leaf.fill"
-        case "fire": return "flame.fill"
-        case "water": return "drop.fill"
-        case "lightning": return "bolt.fill"
-        case "psychic": return "brain.head.profile"
-        case "fighting": return "figure.boxing"
-        case "darkness": return "moon.fill"
-        case "metal": return "shield.fill"
-        case "fairy": return "sparkles"
-        case "dragon": return "tornado"
+        case "grass": return "GrassTypeIcon"
+        case "fire": return "FireTypeIcon"
+        case "water": return "WaterTypeIcon"
+        case "lightning": return "ElectricTypeIcon"
+        case "psychic": return "PsychicTypeIcon"
+        case "fighting": return "FightingTypeIcon"
+        case "darkness": return "DarkTypeIcon"
+        case "metal": return "SteelTypeIcon"
         default: return "circle.fill"
         }
     }

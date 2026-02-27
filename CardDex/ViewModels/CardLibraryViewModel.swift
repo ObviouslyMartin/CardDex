@@ -117,6 +117,33 @@ final class CardLibraryViewModel {
     }
     
     // MARK: - Filtering and Sorting
+    /// Applies all active filters and sorting to the cards collection and updates `filteredCards`.
+    ///
+    /// This method is called automatically whenever any filter or sort option changes through
+    /// property observers. It processes the complete `cards` array through multiple filtering
+    /// stages and then applies the selected sorting option.
+    ///
+    /// **Filtering stages applied in order:**
+    /// 1. **Search text**: Filters cards by name, set name, or artist using case-insensitive contains matching
+    /// 2. **Supertype**: Filters cards matching any selected supertypes
+    /// 3. **Type**: Filters cards that have at least one type matching the selected types
+    /// 4. **Rarity**: Filters cards matching any selected rarities
+    /// 5. **Set**: Filters cards belonging to any selected sets (by set ID)
+    ///
+    /// **Sorting**: After filtering, cards are sorted according to `selectedSortOption`:
+    /// - `.name`: Alphabetical by card name
+    /// - `.dateAdded`: Most recently added first
+    /// - `.setName`: Alphabetical by set name  
+    /// - `.number`: Numeric ordering of card numbers
+    /// - `.rarity`: Alphabetical by rarity
+    /// - `.type`: Alphabetical by first type
+    ///
+    /// The final result is stored in `filteredCards` which drives the UI display.
+    ///
+    /// - Note: This method processes the entire cards collection each time it's called.
+    ///   For large collections, consider implementing incremental filtering optimizations.
+    /// - Important: This is a private method that should not be called directly. 
+    ///   It's automatically invoked when filter properties change.
     private func applyFiltersAndSort() {
         var result = cards
         
