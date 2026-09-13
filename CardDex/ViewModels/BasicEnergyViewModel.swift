@@ -39,17 +39,23 @@ final class BasicEnergyViewModel {
     
     /// Creates entries for all energy types if they don't exist
     private func initializeEnergiesIfNeeded() {
+        // Add any missing types
         for type in BasicEnergy.allTypes {
             if !energyExists(type: type) {
                 let energy = BasicEnergy(type: type, count: 0)
                 modelContext.insert(energy)
             }
         }
-        
+
+        // Remove any stale/legacy types no longer supported (e.g. Dragon, Fairy)
+        let validTypes = Set(BasicEnergy.allTypes)
+        for stale in energies where !validTypes.contains(stale.type) {
+            modelContext.delete(stale)
+        }
+
         try? modelContext.save()
         fetchEnergies()
     }
-    
     private func energyExists(type: String) -> Bool {
         let descriptor = FetchDescriptor<BasicEnergy>(
             predicate: #Predicate { $0.type == type }
