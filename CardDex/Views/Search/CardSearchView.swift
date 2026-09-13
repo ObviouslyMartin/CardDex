@@ -375,6 +375,21 @@ struct SelectableCardBriefItem: View {
                     .background(Color.green, in: Capsule())
                     .padding(6)
                 }
+                
+                // Selection Badge
+                if isSelected{
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                        Text("×\(selectedQuantity)")
+                            .font(.caption.bold())
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.green, in: Capsule())
+                    .padding(6)
+                }
             }
             .onTapGesture(perform: onTap)
             

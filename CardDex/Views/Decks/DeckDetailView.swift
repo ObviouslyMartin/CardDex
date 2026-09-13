@@ -346,14 +346,14 @@ struct DeckDetailView: View {
     
     private func energyIcon(for type: String) -> String {
         switch type.lowercased() {
-        case "grass": return "GrassTypeIcon"
-        case "fire": return "FireTypeIcon"
-        case "water": return "WaterTypeIcon"
-        case "lightning": return "ElectricTypeIcon"
-        case "psychic": return "PsychicTypeIcon"
-        case "fighting": return "FightingTypeIcon"
-        case "darkness": return "DarkTypeIcon"
-        case "metal": return "SteelTypeIcon"
+        case "grass": return "grass"
+        case "fire": return "fire"
+        case "water": return "water"
+        case "lightning": return "lightning"
+        case "psychic": return "psychic"
+        case "fighting": return "fighting"
+        case "darkness": return "dark"
+        case "metal": return "metal"
         default: return "circle.fill"
         }
     }

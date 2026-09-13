@@ -36,8 +36,8 @@ extension Color {
         case "fighting": return Color(light: Color(red: 0.75, green: 0.22, blue: 0.17), dark: Color(red: 0.65, green: 0.12, blue: 0.07))
         case "darkness", "dark": return Color(light: Color(red: 0.31, green: 0.31, blue: 0.31), dark: Color(red: 0.51, green: 0.51, blue: 0.51))
         case "metal", "steel": return Color(light: Color(red: 0.60, green: 0.67, blue: 0.72), dark: Color(red: 0.50, green: 0.57, blue: 0.62))
-        case "fairy": return Color(light: Color(red: 0.85, green: 0.51, blue: 0.85), dark: Color(red: 0.75, green: 0.41, blue: 0.75))
-        case "dragon": return Color(light: Color(red: 0.44, green: 0.35, blue: 0.98), dark: Color(red: 0.34, green: 0.25, blue: 0.88))
+//        case "fairy": return Color(light: Color(red: 0.85, green: 0.51, blue: 0.85), dark: Color(red: 0.75, green: 0.41, blue: 0.75))
+//        case "dragon": return Color(light: Color(red: 0.44, green: 0.35, blue: 0.98), dark: Color(red: 0.34, green: 0.25, blue: 0.88))
         case "colorless", "normal": return Color(light: Color(red: 0.66, green: 0.66, blue: 0.66), dark: Color(red: 0.56, green: 0.56, blue: 0.56))
         default: return Color.gray
         }

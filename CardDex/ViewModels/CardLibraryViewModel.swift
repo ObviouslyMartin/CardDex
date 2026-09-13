@@ -215,6 +215,7 @@ final class CardLibraryViewModel {
         // Extract numeric part for proper sorting (e.g., "1" < "2" < "10")
         let int1 = Int(num1.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
         let int2 = Int(num2.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+        print(int1, int2)
         return int1 < int2
     }
     
@@ -222,7 +223,7 @@ final class CardLibraryViewModel {
         searchText = ""
         selectedSupertypes.removeAll()
         selectedTypes.removeAll()
-        selectedRarities.removeAll()
+    selectedRarities.removeAll()
         selectedSets.removeAll()
     }
     
