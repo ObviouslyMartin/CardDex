@@ -26,10 +26,15 @@ struct ContentView: View {
                     Label("Energy", systemImage: "bolt.fill")
                 }
             
-            Text("Stats Coming Soon")
-                .tabItem {
-                    Label("Stats", systemImage: "chart.bar")
-                }
+//            Text("Stats Coming Soon")
+//                .tabItem {
+//                    Label("Stats", systemImage: "chart.bar")
+//                }
+            StatsView()
+                 .tabItem {
+                     Label("Stats", systemImage: "chart.bar")
+                 }
+     
         }
     }
 }

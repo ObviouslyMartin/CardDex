@@ -34,15 +34,23 @@ final class BasicEnergy {
     
     // Helper to get display icon for each type
     var icon: String {
+        BasicEnergy.icon(for: type)
+    }
+
+    // Maps any Pokémon type name to its icon asset name
+    static func icon(for type: String) -> String {
         switch type.lowercased() {
         case "grass": return "grass"
         case "fire": return "fire"
         case "water": return "water"
-        case "lightning": return "lightning"
+        case "lightning", "electric": return "lightning"
         case "psychic": return "psychic"
         case "fighting": return "fighting"
-        case "darkness": return "dark"
-        case "metal": return "metal"
+        case "darkness", "dark": return "dark"
+        case "metal", "steel": return "metal"
+        case "fairy": return "fairy"
+        case "dragon": return "dragon"
+        case "colorless", "normal": return "colorless"
         default: return "circle.fill"
         }
     }
